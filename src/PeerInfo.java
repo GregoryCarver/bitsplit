@@ -5,12 +5,14 @@ public class PeerInfo
 {
     public String ip;
     public int port;
+    public int peerID;
     public BitSet fileBits;
 
-    public PeerInfo(String ip, int port, BitSet fileBits)
+    public PeerInfo(String ip, int port, int peerID, BitSet fileBits)
     {
         this.ip = ip;
         this.port = port;
+        this.peerID = peerID;
         this.fileBits = fileBits;
     }
 }

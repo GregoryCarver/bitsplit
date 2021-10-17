@@ -2,13 +2,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-public class Tracker
+//Tracks what peers are participating in the torrent
+public class Tracker extends Thread
 {
     String fileName;
-    int filePieces;
+    int filePiecesCount;
 
-    public List<PeerInfo> seeders;
-    public List<PeerInfo> leechers;
+    List<PeerInfo> seeders;
+    List<PeerInfo> leechers;
 
     public Tracker(String fileName)
     {
@@ -17,19 +18,24 @@ public class Tracker
         leechers = new ArrayList<PeerInfo>();
     }
 
-    public void AddSeeder(String ip, int port, BitSet fileBits)
+    public void AddSeeder(String ip, int port, int peerID, BitSet fileBits)
     {
-        seeders.add(new PeerInfo(ip, port, fileBits));
+        seeders.add(new PeerInfo(ip, port, peerID, fileBits));
     }
 
-    public void AddLeecher(String ip, int port, BitSet fileBits)
+    public void AddLeecher(String ip, int port, int peerID, BitSet fileBits)
     {
-        leechers.add(new PeerInfo(ip, port, fileBits));
+        leechers.add(new PeerInfo(ip, port, peerID, fileBits));
+    }
+
+    public String GetFileName()
+    {
+        return fileName;
     }
 
     public int GetFilePiecesCount()
     {
-        return filePieces;
+        return filePiecesCount;
     }
 
     //Need to add server and ability to add and get seeder and leecher info, checkout Objectoutputstream

@@ -1,6 +1,8 @@
+package messages;
+
 import java.util.BitSet;
 
-public class HandShake
+public class HandShake implements  IMessage
 {
     final static String handShakeHeader = "P2PFILESHARINGPROJ";
     BitSet zeroBits;

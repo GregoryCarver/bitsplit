@@ -13,8 +13,8 @@ public class TrackerInfo implements IMessage
     public String fileName;
     public int filePiecesCount;
 
-    List<PeerInfo> seeders;
-    List<PeerInfo> leechers;
+    public List<PeerInfo> seeders;
+    public List<PeerInfo> leechers;
 
     public TrackerInfo(String fileName, int filePiecesCount, List<PeerInfo> seeders, List<PeerInfo> leechers)
     {

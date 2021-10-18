@@ -6,7 +6,7 @@ package messages;
 
 public class HelloTracker implements IMessage
 {
-    int peerID;
+    public int peerID;
 
     public HelloTracker(int peerID)
     {

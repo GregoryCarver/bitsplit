@@ -10,9 +10,9 @@ public class HandShake implements  IMessage
 {
     public final static String handShakeHeader = "P2PFILESHARINGPROJ";
     //10 bytes of 0 bits
-    BitSet zeroBits;
+    public BitSet zeroBits;
     //PeerID of the sending peer
-    int peerID;
+    public int peerID;
 
     public HandShake(BitSet zeroBits, int peerID)
     {
@@ -23,10 +23,5 @@ public class HandShake implements  IMessage
     {
         this.zeroBits = new BitSet(80);
         this.peerID = peerID;
-    }
-
-    public int GetPeerID()
-    {
-        return peerID;
     }
 }

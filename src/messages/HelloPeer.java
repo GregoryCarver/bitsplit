@@ -7,7 +7,7 @@ package messages;
 
 public class HelloPeer implements IMessage
 {
-    String fileName;
+    public String fileName;
 
     public HelloPeer(String fileName)
     {

@@ -15,7 +15,7 @@ import java.util.List;
  * a tracker.
  **********************************************************************************************************************/
 
-public class Peer
+class Peer
 {
     //File torrents currently participating in
     List<Torrent> torrents;

@@ -18,8 +18,8 @@ public class Message implements IMessage
                              REQUEST            = 6,
                              PIECE              = 7;
 
-    int messageLength;
-    byte messageType;
+    public int messageLength;
+    public byte messageType;
 
     //Default message
     public Message()

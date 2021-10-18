@@ -23,10 +23,9 @@ public class BitSplit
     {
         /******* Used for testing *******///////////////////////////////////////////////////////////////////////////
         Peer peer = new Peer(7, "1.0.0.0", 8001);
-        HandShake handShake = new HandShake(new BitSet(80), peer.peerID);
-        Server testServer = new Server(8000, handShake);
+        Server testServer = new Server(8000, new IntMessage(4, Message.HAVE, 777));
         testServer.start();
-        peer.SendMessage("0.0.0.0", 8000, new HandShake(peer.peerID));
+        peer.SendMessage("0.0.0.0", 8000, new IntMessage(4, Message.HAVE, 777));
         while(true)
         {
             if(!peer.GetConnections().get(0).GetInMessages().isEmpty())
@@ -34,12 +33,21 @@ public class BitSplit
                 System.out.println(peer.GetConnections().get(0).GetInMessages().size());
                 if(peer.GetConnections().get(0).GetInMessages().peek() instanceof HandShake)
                 {
-                    System.out.println(((HandShake)peer.GetConnections().get(0).GetInMessages().remove()).GetPeerID());
+                    System.out.println(((HandShake)peer.GetConnections().get(0).GetInMessages().remove()).peerID);
                 }
+                else if(peer.GetConnections().get(0).GetInMessages().peek() instanceof Message)
+                {
+                    System.out.println(((Message)peer.GetConnections().get(0).GetInMessages().remove()).messageType);
+                }
+                testServer.connections.get(0).interrupt();
+                testServer.interrupt();
+                peer.GetConnections().get(0).interrupt();
+                peer.server.interrupt();
                 break;
             }
         }
-        /******* End of testing *******///////////////////////////////////////////////////////////////////////////
+
+        /******* End of testing *******////////////////////////////////////////////////////////////////////////////
 
     }
 }

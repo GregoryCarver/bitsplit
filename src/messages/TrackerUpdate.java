@@ -10,8 +10,8 @@ import java.util.List;
 
 public class TrackerUpdate implements IMessage
 {
-    List<PeerInfo> seeders;
-    List<PeerInfo> leechers;
+    public List<PeerInfo> seeders;
+    public List<PeerInfo> leechers;
 
     public TrackerUpdate(List<PeerInfo> seeders, List<PeerInfo> leechers)
     {

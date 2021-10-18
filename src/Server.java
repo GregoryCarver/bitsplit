@@ -14,7 +14,7 @@ public class Server extends Thread
 {
     int port;
     IMessage message;
-    List<Connection> connections;
+    volatile List<Connection> connections;
 
     public Server(int port, IMessage message)
     {

@@ -9,7 +9,7 @@ import java.util.BitSet;
 
 public class BitFieldMessage extends Message
 {
-    BitSet filesBits;
+    public BitSet filesBits;
 
     public BitFieldMessage(int messageLength, byte messageType, BitSet fileBits)
     {

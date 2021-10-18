@@ -5,9 +5,7 @@ import messages.IMessage;
 
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
+import java.util.*;
 
 /***********************************************************************************************************************
  * Peer type that can connect to other peers or trackers. After connecting to a tracker, it can then exchange pieces of
@@ -21,15 +19,45 @@ public class Peer
     List<Torrent> torrents;
     int serverPort;
     int peerID;
+    int hasFile;
+    String hostName;
     String ip;
     Server server;
     List<Connection> connections;
 
     public  Peer(int peerID, String ip, int serverPort)
     {
+
+        File cfg = new File("src/PeerInfo.cfg");
+        Scanner cfgReader = null;
+        try {
+            cfgReader = new Scanner(cfg);
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        StringTokenizer tokenizer = null;
+        while(true)
+        {
+            assert cfgReader != null;
+            if (!cfgReader.hasNextLine()) break;
+            tokenizer = new StringTokenizer(cfgReader.nextLine());
+            if (String.valueOf(peerID).equals(tokenizer.nextToken()))
+            {
+                break;
+            }
+        }
+
+        this.peerID = peerID;
+//        assert tokenizer != null;
+//        this.hostName = tokenizer.nextToken();
+//        this.port = Integer.parseInt(tokenizer.nextToken());
+//        this.hasFile = Integer.parseInt(tokenizer.nextToken());
+
         ////////////////////////////********************Need to read config files to setup peer values
         torrents = new ArrayList<Torrent>();
-        this.peerID = peerID;
+//        this.peerID = peerID;
         this.ip = ip;
         this.serverPort = serverPort;
         connections = new ArrayList<>();

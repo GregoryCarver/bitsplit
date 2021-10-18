@@ -1,3 +1,4 @@
+import messages.HandShake;
 import messages.IMessage;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ class Connection extends Thread
     ObjectOutputStream output;
     volatile Queue<IMessage> messagesOut;
     volatile Queue<IMessage> messagesIn;
+    boolean handshake;
 
     //Make the connection in the constructor
     public Connection(Socket clientSocket, IMessage message)
@@ -43,9 +45,14 @@ class Connection extends Thread
             while(true)
             {
                 //If there is a message to be sent, send it
-                if(!messagesOut.isEmpty())
+                while(!messagesOut.isEmpty())
                 {
                     output.writeObject(messagesOut.remove());
+                    if (messagesOut.peek() != null)
+                    {
+                        System.out.println("Writing this:" + messagesOut.peek().toString());
+                        System.out.println(messagesOut.size());
+                    }
                     output.flush();
                 }
 
@@ -55,7 +62,19 @@ class Connection extends Thread
         }
         catch(IOException | ClassNotFoundException e)
         {
-            e.printStackTrace();
+            System.out.println("Connection closed on port: " + clientSocket.getPort());
+        }
+        finally
+        {
+            try {
+                input.close();
+                output.close();
+                clientSocket.close();
+            }
+            catch (IOException e)
+            {
+                System.out.println("Connection closed on port: " + clientSocket.getPort());
+            }
         }
     }
 

@@ -21,24 +21,35 @@ public class BitSplit
 {
     public static void main(String[] args)
     {
-        /******* Used for testing *******///////////////////////////////////////////////////////////////////////////
-        Peer peer = new Peer(7, "1.0.0.0", 8001);
-        HandShake handShake = new HandShake(new BitSet(80), peer.peerID);
-        Server testServer = new Server(8000, handShake);
-        testServer.start();
-        peer.SendMessage("0.0.0.0", 8000, new HandShake(peer.peerID));
-        while(true)
+        int peerID = Integer.parseInt(args[0]);
+        Peer peer = new Peer(peerID, "localhost", 6000 + (peerID - 1001));
+        if (peerID != 1001)
         {
-            if(!peer.GetConnections().get(0).GetInMessages().isEmpty())
+            for (int i = 0; i < peerID - 1001; i++)
             {
-                System.out.println(peer.GetConnections().get(0).GetInMessages().size());
-                if(peer.GetConnections().get(0).GetInMessages().peek() instanceof HandShake)
-                {
-                    System.out.println(((HandShake)peer.GetConnections().get(0).GetInMessages().remove()).GetPeerID());
-                }
-                break;
+                peer.SendMessage("localhost", 6000 + i, new HandShake(peer.peerID));
+            }
+            for (int i = 0; i < 50; i++)
+            {
+                peer.connections.get(0).AddMessage(new HandShake(peer.peerID));
+                System.out.println(peer.connections.size());
             }
         }
+//        Server testServer = new Server(8000, handShake);
+//        testServer.start();
+//        peer.SendMessage("0.0.0.0", 8000, new HandShake(peer.peerID));
+//        while(true)
+//        {
+//            if(!peer.GetConnections().get(0).GetInMessages().isEmpty())
+//            {
+//                System.out.println(peer.GetConnections().get(0).GetInMessages().size());
+//                if(peer.GetConnections().get(0).GetInMessages().peek() instanceof HandShake)
+//                {
+//                    System.out.println(((HandShake)peer.GetConnections().get(0).GetInMessages().remove()).GetPeerID());
+//                }
+//                break;
+//            }
+//        }
         /******* End of testing *******///////////////////////////////////////////////////////////////////////////
 
     }

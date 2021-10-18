@@ -1,6 +1,6 @@
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
+import messages.PeerInfo;
+
+import java.util.*;
 
 //Torrent object used by peers to separate different files and determine who is participating in a particular torrent
 public class Torrent
@@ -9,14 +9,16 @@ public class Torrent
     Tracker tracker;
     List<PeerInfo> preferredNeighbors;
     //Bits representing whether the peer has that piece
-    BitSet fileBits;
-    //******************maybe a hashtable for the fileBits of all other peers
+    Dictionary<String, BitSet> fileBits;
+    Connection trackerConnection;
 
-    public Torrent(Tracker tracker)
+    public Torrent(Tracker tracker, int peerID, Connection trackerConnection)
     {
         this.tracker = tracker;
         preferredNeighbors = new ArrayList<PeerInfo>();
-        fileBits = new BitSet(tracker.GetFilePiecesCount());
+        fileBits = new Hashtable<>();
+        fileBits.put(String.valueOf(peerID), new BitSet(tracker.GetFilePiecesCount()));
+        this.trackerConnection = trackerConnection;
     }
 
 }

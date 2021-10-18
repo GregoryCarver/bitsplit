@@ -1,11 +1,15 @@
 package messages;
 
-import java.io.Serializable;
-
 /***********************************************************************************************************************
- * Empty interface so messages.Message and messages.HandShake can share a common type.
- * Implemented by: messages.Message; messages.Handshake
+ * Used for sending the initial HelloTracker to the Tracker. It sends the sending peer's peerID.
  **********************************************************************************************************************/
 
-public interface IMessage extends Serializable
-{ }
+public class HelloTracker implements IMessage
+{
+    int peerID;
+
+    public HelloTracker(int peerID)
+    {
+        this.peerID = peerID;
+    }
+}

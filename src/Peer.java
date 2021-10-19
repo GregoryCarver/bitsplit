@@ -51,10 +51,6 @@ class Peer
         {
             clientSocket = new Socket(trackerIP, trackerPort);
         }
-        catch(UnknownHostException e)
-        {
-            e.printStackTrace();
-        }
         catch(IOException e)
         {
             e.printStackTrace();
@@ -79,10 +75,6 @@ class Peer
             clientSocket = new Socket(ip, port);
             connections.add(new Connection(clientSocket, message));
             connections.get(connections.size() - 1).start();
-        }
-        catch(UnknownHostException e)
-        {
-            e.printStackTrace();
         }
         catch(IOException e)
         {

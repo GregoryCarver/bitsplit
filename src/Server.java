@@ -15,12 +15,14 @@ public class Server extends Thread
     int port;
     IMessage message;
     volatile List<Connection> connections;
+    volatile boolean isStopped;
 
     public Server(int port, IMessage message)
     {
         this.port = port;
         this.message = message;
         connections = new ArrayList<Connection>();
+        isStopped = false;
     }
 
     public void run()
@@ -30,7 +32,7 @@ public class Server extends Thread
         {
             server = new ServerSocket(port);
             System.out.println("Listening on port " + port + " at address " + server.getLocalSocketAddress());
-            while(true)
+            while(!isStopped)
             {
                 connections.add(new Connection(server.accept(), message));
                 connections.get(connections.size() - 1).start();
@@ -44,6 +46,7 @@ public class Server extends Thread
         {
             try
             {
+                System.out.println("Server stopped.");
                 server.close();
             }
             catch(IOException e)
@@ -51,5 +54,16 @@ public class Server extends Thread
                 e.printStackTrace();
             }
         }
+        return;
+    }
+
+    public void StopServer()
+    {
+        for(int i = 0; i < connections.size(); i++)
+        {
+            connections.get(i).EndConnection();
+            connections.remove(i);
+        }
+        isStopped = true;
     }
 }

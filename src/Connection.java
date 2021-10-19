@@ -20,6 +20,7 @@ class Connection extends Thread
     ObjectOutputStream output;
     volatile Queue<IMessage> messagesOut;
     volatile Queue<IMessage> messagesIn;
+    volatile boolean isEnded;
 
     //Make the connection in the constructor
     public Connection(Socket clientSocket, IMessage message)
@@ -30,6 +31,7 @@ class Connection extends Thread
 
         this.clientSocket = clientSocket;
         System.out.println("Connected to " + clientSocket.getRemoteSocketAddress() + " in port " + clientSocket.getPort() + ".");
+        isEnded = false;
     }
     //When the thread is started, send the queued messages and wait for responses
     public void run()
@@ -40,7 +42,7 @@ class Connection extends Thread
             output.flush();
             input = new ObjectInputStream(clientSocket.getInputStream());
 
-            while(true)
+            while(!isEnded)
             {
                 //If there is a message to be sent, send it
                 if(!messagesOut.isEmpty())
@@ -57,6 +59,7 @@ class Connection extends Thread
         {
             e.printStackTrace();
         }
+        return;
     }
 
     public void AddMessage(IMessage message)
@@ -67,5 +70,10 @@ class Connection extends Thread
     public Queue<IMessage> GetInMessages()
     {
         return messagesIn;
+    }
+
+    public void EndConnection()
+    {
+        isEnded = true;
     }
 }

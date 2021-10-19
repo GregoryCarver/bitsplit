@@ -22,7 +22,7 @@ public class Message implements IMessage
     byte messageType;
 
     //Default message
-    public Message()
+    public Message(int type)
     {
         messageLength = 0;
         messageType = NOT_INTERESTED;
@@ -35,4 +35,10 @@ public class Message implements IMessage
         this.messageType = messageType;
         messageLength = 0;
     }
+
+    public byte getMessageType()
+    {
+        return this.messageType;
+    }
+
 }

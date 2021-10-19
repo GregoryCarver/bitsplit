@@ -29,10 +29,12 @@ public class BitSplit
             {
                 peer.SendMessage("localhost", 6000 + i, new HandShake(peer.peerID));
             }
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < peerID - 1001; i++)
             {
-                peer.connections.get(0).AddMessage(new HandShake(peer.peerID));
-                System.out.println(peer.connections.size());
+                for (int j = 0; j < 8; j++)
+                {
+                    peer.connections.get(i).AddMessage(new Message(j));
+                }
             }
         }
 //        Server testServer = new Server(8000, handShake);

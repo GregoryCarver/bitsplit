@@ -27,8 +27,7 @@ public class Peer
 
     public  Peer(int peerID, String ip, int serverPort)
     {
-
-        File cfg = new File("src/PeerInfo.cfg");
+        File cfg = new File("/home/max/Documents/CNT/bitsplit/src/PeerInfo.cfg");
         Scanner cfgReader = null;
         try {
             cfgReader = new Scanner(cfg);

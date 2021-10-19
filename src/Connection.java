@@ -1,5 +1,6 @@
 import messages.HandShake;
 import messages.IMessage;
+import messages.Message;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,6 +23,7 @@ class Connection extends Thread
     volatile Queue<IMessage> messagesOut;
     volatile Queue<IMessage> messagesIn;
     boolean handshake;
+    int expectedPeerID;
 
     //Make the connection in the constructor
     public Connection(Socket clientSocket, IMessage message)
@@ -48,15 +50,45 @@ class Connection extends Thread
                 while(!messagesOut.isEmpty())
                 {
                     output.writeObject(messagesOut.remove());
-                    if (messagesOut.peek() != null)
-                    {
-                        System.out.println("Writing this:" + messagesOut.peek().toString());
-                        System.out.println(messagesOut.size());
-                    }
                     output.flush();
                 }
 
                 messagesIn.add((IMessage)input.readObject());
+                if (messagesIn.peek() != null)
+                {
+                    if (messagesIn.peek() instanceof HandShake)
+                    {
+                        HandShake hs = (HandShake) messagesIn.peek();
+                        assert hs != null;
+                        this.expectedPeerID = hs.GetPeerID();
+                        System.out.println("HandShake: " + hs.GetPeerID());
+                    }
+                    else {
+                        Message msg = (Message) messagesIn.peek();
+                        assert msg != null;
+                        switch (msg.getMessageType()) {
+                            case 0:
+                                break;
+                            case 1:
+                                break;
+                            case 2:
+                                break;
+                            case 3:
+                                break;
+                            case 4:
+                                break;
+                            case 5:
+                                break;
+                            case 6:
+                                break;
+                            case 7:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    messagesIn.remove();
+                }
             }
 
         }

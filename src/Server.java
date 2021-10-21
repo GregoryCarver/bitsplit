@@ -32,7 +32,7 @@ public class Server extends Thread
             System.out.println("Listening on port " + port + " at address " + server.getLocalSocketAddress());
             while(true)
             {
-                connections.add(new Connection(server.accept(), message));
+                connections.add(new Connection(server.accept(), message, 1001));
                 connections.get(connections.size() - 1).start();
             }
         }

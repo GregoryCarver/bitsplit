@@ -16,6 +16,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.BitSet;
+import java.io.File;
 
 public class BitSplit
 {
@@ -23,11 +24,48 @@ public class BitSplit
     {
         int peerID = Integer.parseInt(args[0]);
         Peer peer = new Peer(peerID, "localhost", 6000 + (peerID - 1001));
+        //When a peer process starts a log file is created with the same peerID
+        try
+        {
+            String filename = "log_peer_" + peerID + ".log";
+            File logFile = new File(filename);
+            if(logFile.createNewFile())
+            {
+                System.out.println("Log File Successfully Created: " + logFile.getName());
+            }
+            else
+            {
+                System.out.println("File already exists");
+            }
+        }
+        catch (IOException e)
+        {
+            System.out.println("Error Occurred While Writing Log File");
+            e.printStackTrace();
+        }
         if (peerID != 1001)
         {
             for (int i = 0; i < peerID - 1001; i++)
             {
                 peer.SendMessage("localhost", 6000 + i, new HandShake(peer.peerID));
+                // try
+                // {
+                //     String filename = "log_peer_" + 1002+i + ".log";
+                //     File logFile = new File(filename);
+                //     if(logFile.createNewFile())
+                //     {
+                //         System.out.println("Log File Successfully Created: " + logFile.getName());
+                //     }
+                //     else
+                //     {
+                //         System.out.println("File already exists");
+                //     }
+                // }
+                // catch (IOException e)
+                // {
+                //     System.out.println("Error Occurred While Writing Log File");
+                //     e.printStackTrace();
+                // }
             }
             for (int i = 0; i < peerID - 1001; i++)
             {

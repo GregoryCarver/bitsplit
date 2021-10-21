@@ -24,6 +24,7 @@ public class Peer
     String ip;
     Server server;
     List<Connection> connections;
+    int optimisticPeerID;
 
     public  Peer(int peerID, String ip, int serverPort)
     {
@@ -88,7 +89,7 @@ public class Peer
         }
 
         //Keep connection open while in torrents. Used to update the torrent with tracker info
-        torrents.add(new Torrent(tracker, peerID, new Connection(clientSocket, new HelloTracker(peerID))));
+        torrents.add(new Torrent(tracker, peerID, new Connection(clientSocket, new HelloTracker(peerID), peerID)));
     }
 
     public List<Connection> GetConnections()
@@ -104,7 +105,7 @@ public class Peer
         try
         {
             clientSocket = new Socket(ip, port);
-            connections.add(new Connection(clientSocket, message));
+            connections.add(new Connection(clientSocket, message, peerID));
             connections.get(connections.size() - 1).start();
         }
         catch(UnknownHostException e)

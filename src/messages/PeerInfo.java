@@ -10,16 +10,16 @@ import java.util.BitSet;
 
 public class PeerInfo implements IMessage
 {
-    public String ip;
+    public String hostName;
     public int port;
     public int peerID;
-    public BitSet fileBits;
+    public boolean isSeeder;
 
-    public PeerInfo(String ip, int port, int peerID, BitSet fileBits)
+    public PeerInfo(String hostName, int port, int peerID, boolean isSeeder)
     {
-        this.ip = ip;
+        this.hostName = hostName;
         this.port = port;
         this.peerID = peerID;
-        this.fileBits = fileBits;
+        this.isSeeder = isSeeder;
     }
 }

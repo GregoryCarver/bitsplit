@@ -1,4 +1,5 @@
 import messages.HelloPeer;
+import messages.IMessage;
 import messages.PeerInfo;
 
 import java.util.ArrayList;
@@ -40,14 +41,25 @@ public class Tracker extends Thread
         server.start();
     }
 
-    public void AddSeeder(String ip, int port, int peerID, BitSet fileBits)
+    public void run()
     {
-        seeders.add(new PeerInfo(ip, port, peerID, fileBits));
+        while(true)
+        {
+            //Handle one message in each connection so that all connections can be checked equally
+            /////////////////////////////////////////might make tracker handle everything it needs at beginning of connection
+            for(int i = 0; i < server.connections.size(); i++)
+            {
+                if(server.connections.get(i).GetInMessages().size() > 0)
+                {
+                    //Process message
+                }
+            }
+        }
     }
 
-    public void AddLeecher(String ip, int port, int peerID, BitSet fileBits)
+    void ProcessMessage(IMessage message)
     {
-        leechers.add(new PeerInfo(ip, port, peerID, fileBits));
+
     }
 
     //Getters, may not need after all though

@@ -1,24 +1,28 @@
 import messages.PeerInfo;
+import messages.TrackerInfo;
 
 import java.util.*;
 
-//Torrent object used by peers to separate different files and determine who is participating in a particular torrent
+/***********************************************************************************************************************
+ * Torrent object used by peers to separate different files and determine who is participating in a particular torrent.
+ *
+ * ***Using cfg files for the tracker info for project, can change later to generalize tracker.
+ **********************************************************************************************************************/
+
 public class Torrent
 {
-    //Need to either get info directly from the tracker server, or update this tracker periodically
-    Tracker tracker;
+    //Store tracker info
+    TrackerInfo trackerInfo;
     List<PeerInfo> preferredNeighbors;
     //Bits representing whether the peer has that piece
-    Dictionary<String, BitSet> fileBits;
+    Dictionary<Integer, BitSet> fileBits;
     Connection trackerConnection;
 
-    public Torrent(Tracker tracker, int peerID, Connection trackerConnection)
+    public Torrent(int peerID, Connection trackerConnection)
     {
-        this.tracker = tracker;
         preferredNeighbors = new ArrayList<PeerInfo>();
         fileBits = new Hashtable<>();
-        fileBits.put(String.valueOf(peerID), new BitSet(tracker.GetFilePiecesCount()));
+        fileBits.put(peerID, new BitSet(trackerInfo.filePiecesCount));
         this.trackerConnection = trackerConnection;
     }
-
 }

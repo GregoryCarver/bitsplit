@@ -18,16 +18,18 @@ class Connection extends Thread
     Socket clientSocket;
     ObjectInputStream input;
     ObjectOutputStream output;
+    int peerID;
     volatile Queue<IMessage> messagesOut;
     volatile Queue<IMessage> messagesIn;
     volatile boolean isEnded;
 
     //Make the connection in the constructor
-    public Connection(Socket clientSocket, IMessage message)
+    public Connection(Socket clientSocket, IMessage message, int peerID)
     {
         this.messagesOut = new LinkedList<>();
         messagesOut.add(message);
         this.messagesIn = new LinkedList<>();
+        this.peerID = peerID;
 
         this.clientSocket = clientSocket;
         System.out.println("Connected to " + clientSocket.getRemoteSocketAddress() + " in port " + clientSocket.getPort() + ".");
@@ -59,7 +61,6 @@ class Connection extends Thread
         {
             e.printStackTrace();
         }
-        return;
     }
 
     public void AddMessage(IMessage message)
@@ -71,6 +72,8 @@ class Connection extends Thread
     {
         return messagesIn;
     }
+
+    public int GetPeerID() { return peerID; }
 
     public void EndConnection()
     {

@@ -11,7 +11,7 @@ public class BitFieldMessage extends Message
 {
     public BitSet filesBits;
 
-    public BitFieldMessage(int messageLength, byte messageType, BitSet fileBits)
+    public BitFieldMessage(byte messageType, BitSet fileBits)
     {
         super(messageType);
         this.filesBits = fileBits;

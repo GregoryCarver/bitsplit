@@ -10,7 +10,7 @@ public class IntMessage extends Message
     //Int representing a bitfield index
     public int index;
 
-    public IntMessage(int messageLength, byte messageType, int index)
+    public IntMessage(byte messageType, int index)
     {
         super(messageType);
         this.index = index;

@@ -12,24 +12,25 @@ import java.util.Queue;
  * connect to a server. Sends a single message, waits for a response, and then closes.
  * Used by: Peers, and Tracker
  **********************************************************************************************************************/
-////////////////////////////////////////////////////////////////got to fix connection to be persistent I believe
 class Connection extends Thread
 {
     Socket clientSocket;
     ObjectInputStream input;
     ObjectOutputStream output;
     int peerID;
+    int peerPosition;
     volatile Queue<IMessage> messagesOut;
     volatile Queue<IMessage> messagesIn;
     volatile boolean isEnded;
 
     //Make the connection in the constructor
-    public Connection(Socket clientSocket, IMessage message, int peerID)
+    public Connection(Socket clientSocket, IMessage message, int peerID, int peerPosition)
     {
         this.messagesOut = new LinkedList<>();
         messagesOut.add(message);
         this.messagesIn = new LinkedList<>();
         this.peerID = peerID;
+        this.peerPosition = peerPosition;
 
         this.clientSocket = clientSocket;
         System.out.println("Connected to " + clientSocket.getRemoteSocketAddress() + " in port " + clientSocket.getPort() + ".");
@@ -74,6 +75,8 @@ class Connection extends Thread
     }
 
     public int GetPeerID() { return peerID; }
+
+    public int GetPeerPos() { return peerPosition;}
 
     public void EndConnection()
     {

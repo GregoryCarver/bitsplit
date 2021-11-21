@@ -13,7 +13,7 @@ import java.util.*;
 class Peer extends Thread
 {
     //File torrents currently participating in
-    List<Torrent> torrents;
+    //List<Torrent> torrents;
     int serverPort;
     int peerID;
     String hostName;
@@ -22,6 +22,7 @@ class Peer extends Thread
     //Added for the project
     boolean hasFile;
     BitSet myFileBits;
+    BitSet myRequestedBits;
     //Dictionaries to hold the peers' status
     // key   = peerIDs of the various peers
     // value = obvious from variable name
@@ -30,29 +31,32 @@ class Peer extends Thread
     Map<Integer, Boolean> isInterested;
     int fileSize;
     int pieceSize;
+    volatile boolean isPeerListening;
 
     public  Peer(int peerID, String hostName, int serverPort)
     {
         ////////////////////////////********************Need to read config(just meta now) files to setup peer values
         //fileSize = cfg file
         //pieceSize = cfg file
-        torrents = new ArrayList<Torrent>();
+        //torrents = new ArrayList<Torrent>();
         this.peerID = peerID;
         this.hostName = hostName;
         this.serverPort = serverPort;
         connections = new ArrayList<>();
         myFileBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
+        myRequestedBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
         fileBits = new HashMap<>();
         isChoked = new HashMap<>();
         isInterested = new HashMap<>();
         //Start listening for peers
-        server = new Server(serverPort, new HandShake(peerID));
+        server = new Server(serverPort, new HandShake(peerID), peerID);
         server.start();
         //Connects the peers with previously joined peers(from the PeerInfo.cfg file
         ConnectPeers();
+        isPeerListening = true;
     }
 
-    public void AddTorrent(String trackerIP, int trackerPort)
+/*    public void AddTorrent(String trackerIP, int trackerPort)
     {
         //Form object stream connection with tracker
         Tracker tracker = null;
@@ -71,15 +75,15 @@ class Peer extends Thread
         }
 
         //Keep connection open while in torrents. Used to update the torrent with tracker info
-        torrents.add(new Torrent(peerID, new Connection(clientSocket, new HelloTracker(peerID), -7)));
-    }
+        torrents.add(new Torrent(peerID, new Connection(clientSocket, new HelloTracker(peerID), -7, connections.size())));
+    }*/
 
     public List<Connection> GetConnections()
     {
         return connections;
     }
 
-    //*********************************************Used to test for now, might become real method
+/*    //*********************************************Used to test for now, might become real method
     public void SendMessage(String hostName, int port, IMessage message, int peerID)
     {
         Socket clientSocket;
@@ -87,14 +91,14 @@ class Peer extends Thread
         try
         {
             clientSocket = new Socket(hostName, port);
-            connections.add(new Connection(clientSocket, message, peerID));
+            connections.add(new Connection(clientSocket, message, peerID, connections.size()));
             connections.get(connections.size() - 1).start();
         }
         catch(IOException e)
         {
             e.printStackTrace();
         }
-    }
+    }*/
 
     //Connect the peers to all the peers before it in the PeerInfo.cfg file
     public void ConnectPeers()
@@ -142,17 +146,24 @@ class Peer extends Thread
                 {
                     e.printStackTrace();
                 }
-                connections.add(new Connection(clientSocket, new HandShake(Integer.parseInt(tempPeerID)), Integer.parseInt(tempPeerID)));
+                connections.add(new Connection(clientSocket, new HandShake(Integer.parseInt(tempPeerID)), Integer.parseInt(tempPeerID), connections.size()));
             }
         }
     }
 
-    public void HandleMessage(IMessage message, int peerID)
+    public void HandleMessage(IMessage message, int peerID, int peerPosition)
     {
+        Connection fromConnection = connections.get(peerPosition);
         //Check if handshake and the right peerID ////////////////////////////////////make sure this is right peerID(which peer)
         if(message instanceof HandShake && ((HandShake)message).peerID == peerID)
         {
-
+            for(int i = 0; i < myFileBits.size(); i++)
+            {
+                if(myFileBits.get(i) == true)
+                {
+                    fromConnection.AddMessage(new BitFieldMessage(Message.BITFIELD, myFileBits));
+                }
+            }
         }
         else
         {
@@ -172,29 +183,35 @@ class Peer extends Thread
                     isInterested.put(peerID, false);
                     break;
                 case Message.HAVE           :
+                    int index = ((IntMessage)m).index;
                     if(fileBits.containsKey(peerID))
                     {
-                        fileBits.get(peerID).set(((IntMessage)m).index, true);
+                        fileBits.get(peerID).set(index, true);
                     }
                     else
                     {
                         int pieceCount = (fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1);
                         fileBits.put(peerID, new BitSet(pieceCount));
-                        fileBits.get(peerID).set(((IntMessage)m).index, true);
+                        fileBits.get(peerID).set(index, true);
                     }
-                    //****************************************************************************************************SEND REQUEST
-                    //update requested bitset
+                    //Send request for the index'th piece
+                    fromConnection.AddMessage(new IntMessage(Message.REQUEST, index));
+                    //Update myRequestedBits so that we know it's requesting that piece
+                    myRequestedBits.set(index, true);
                     break;
                 case Message.BITFIELD       :
                     BitFieldMessage msg = ((BitFieldMessage)m);
                     for(int i = 0; i < msg.filesBits.size(); i++)
                     {
+                        //If there are still pieces needed, then send an interested message
                         if(msg.filesBits.get(i) == true && myFileBits.get(i) == false)
                         {
-                            //******************************************************************************************SEND INTERESTED
+                            fromConnection.AddMessage(new Message(Message.INTERESTED));
+                            break;
                         }
                     }
-                    ////***********************************************************************************************SEND NOT INTERESTED
+                    //else send a not interested message
+                    fromConnection.AddMessage(new Message());
                     break;
                 case Message.REQUEST        :
                     if(!isChoked.get(peerID))
@@ -214,16 +231,24 @@ class Peer extends Thread
 
     public void run()
     {
-        for(int i = 0; i < connections.size(); i++)
+        while(isPeerListening)
         {
-            if(connections.get(i).GetInMessages().size() > 0)
+            for(int i = 0; i < connections.size(); i++)
             {
-                HandleMessage(connections.get(i).GetInMessages().remove(), connections.get(i).GetPeerID());
+                Connection currConnection = connections.get(i);
+                if(currConnection.GetInMessages().size() > 0)
+                {
+                    HandleMessage(currConnection.GetInMessages().remove(), currConnection.GetPeerID(), currConnection.GetPeerPos());
+                }
             }
-        }
-        for(int i = 0; i < server.connections.size(); i++)
-        {
-
+            for(int i = 0; i < server.connections.size(); i++)
+            {
+                Connection currConnection = connections.get(i);
+                if(currConnection.GetInMessages().size() > 0)
+                {
+                    HandleMessage(currConnection.GetInMessages().remove(), currConnection.GetPeerID(), currConnection.GetPeerPos());
+                }
+            }
         }
     }
 }

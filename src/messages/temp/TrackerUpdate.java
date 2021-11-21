@@ -1,6 +1,7 @@
-package messages;
+package messages.temp;
 
 import messages.IMessage;
+import messages.PeerInfo;
 
 import java.util.List;
 

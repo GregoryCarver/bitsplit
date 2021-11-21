@@ -14,13 +14,15 @@ public class Server extends Thread
 {
     int port;
     IMessage message;
+    int peerID;
     volatile List<Connection> connections;
     volatile boolean isStopped;
 
-    public Server(int port, IMessage message)
+    public Server(int port, IMessage message, int peerID)
     {
         this.port = port;
         this.message = message;
+        this.peerID = peerID;
         connections = new ArrayList<Connection>();
         isStopped = false;
     }
@@ -34,7 +36,7 @@ public class Server extends Thread
             System.out.println("Listening on port " + port + " at address " + server.getLocalSocketAddress());
             while(!isStopped)
             {
-                connections.add(new Connection(server.accept(), message));
+                connections.add(new Connection(server.accept(), message, peerID, connections.size()));
                 connections.get(connections.size() - 1).start();
             }
         }

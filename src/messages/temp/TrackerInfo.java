@@ -1,12 +1,11 @@
 package messages.temp;
 
 import messages.IMessage;
-import messages.PeerInfo;
 
 import java.util.List;
 
 /***********************************************************************************************************************
- * Tracker uses this to initialize connections with peers.
+ * messages.temp.Tracker uses this to initialize connections with peers.
  **********************************************************************************************************************/
 
 public class TrackerInfo implements IMessage

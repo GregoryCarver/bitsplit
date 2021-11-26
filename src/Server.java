@@ -32,7 +32,7 @@ public class Server extends Thread
         ServerSocket server = null;
         try
         {
-            server = new ServerSocket();
+            server = new ServerSocket(port);
             System.out.println("Listening on port " + port + " at address " + server.getLocalSocketAddress());
             while(!isStopped)
             {

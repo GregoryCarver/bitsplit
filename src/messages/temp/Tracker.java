@@ -1,22 +1,26 @@
-import messages.HelloPeer;
+/*
+package messages.temp;
+
+import messages.temp.HelloPeer;
 import messages.IMessage;
-import messages.PeerInfo;
+import messages.temp.PeerInfo;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
+*/
 /***********************************************************************************************************************
  * Tracks what peers are participating in the torrent and updates them of the state of all the neighbors. Has a server
  * that listens for peers to join the torrent, and also periodically updates the peers with the seeders and leechers
  * lists.
  *
  * Instances of this are stored in the torrents that peers store
- **********************************************************************************************************************/
+ **********************************************************************************************************************//*
+
 
 public class Tracker extends Thread
 {
-    //Tracker port
+    //messages.temp.Tracker port
     int port;
     //Name of the file this tracker corresponds to
     String fileName;
@@ -77,3 +81,4 @@ public class Tracker extends Thread
 
     public List<PeerInfo> GetLeechers() { return leechers; }
 }
+*/

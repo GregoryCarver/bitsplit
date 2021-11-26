@@ -10,7 +10,7 @@ import java.util.Queue;
 /***********************************************************************************************************************
  * Class used to run the connections made. Can be used to listen on a server socket, or used my a client process to
  * connect to a server. Sends a single message, waits for a response, and then closes.
- * Used by: Peers, and Tracker
+ * Used by: Peers, and messages.temp.Tracker
  **********************************************************************************************************************/
 class Connection extends Thread
 {

@@ -1,12 +1,11 @@
 package messages.temp;
 
 import messages.IMessage;
-import messages.PeerInfo;
 
 import java.util.List;
 
 /***********************************************************************************************************************
- * Tracker uses this to update the peers with the other peer
+ * messages.temp.Tracker uses this to update the peers with the other peer
  **********************************************************************************************************************/
 
 public class TrackerUpdate implements IMessage

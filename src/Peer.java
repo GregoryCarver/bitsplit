@@ -12,40 +12,32 @@ import java.util.*;
 
 class Peer extends Thread
 {
-    //File torrents currently participating in
-    //List<Torrent> torrents;
     int serverPort;
     int peerID;
     String hostName;
     Server server;
     List<Connection> connections;
-    //Added for the project
     boolean hasFile;
     BitSet myFileBits;
-    BitSet myRequestedBits;
-    //Dictionaries to hold the peers' status
-    // key   = peerIDs of the various peers
-    // value = obvious from variable name
+    volatile BitSet myRequestedBits;
     Map<Integer, BitSet> fileBits;
     Map<Integer, Boolean> isChoked;
     Map<Integer, Boolean> isInterested;
+    int numOfPrefNeighbors;
+    int unchokingInterval;
+    int optimisticInterval;
     int fileSize;
+    String fileName;
     int pieceSize;
     volatile boolean isPeerListening;
 
-    public  Peer(int peerID, String hostName, int serverPort)
+    public  Peer(int peerID)
     {
-        ////////////////////////////********************Need to read config(just meta now) files to setup peer values
-        //fileSize = cfg file
-        //pieceSize = cfg file
-        //torrents = new ArrayList<Torrent>();
         this.peerID = peerID;
-        this.hostName = hostName;
-        this.serverPort = serverPort;
+        SetupPeer();
         connections = new ArrayList<>();
         myFileBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
         myRequestedBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
-        fileBits = new HashMap<>();
         isChoked = new HashMap<>();
         isInterested = new HashMap<>();
         //Start listening for peers
@@ -53,57 +45,75 @@ class Peer extends Thread
         server.start();
         //Connects the peers with previously joined peers(from the PeerInfo.cfg file
         ConnectPeers();
+
         isPeerListening = true;
+        File fileDir = new File("peer_" + String.valueOf(peerID));
+        if(fileDir.list().length != 0)
+        {
+            myFileBits.set(0, myFileBits.size());
+            File theFile = new File(fileDir + "/" + fileName);
+            SplitFile(theFile);
+        }
     }
-
-/*    public void AddTorrent(String trackerIP, int trackerPort)
-    {
-        //Form object stream connection with tracker
-        Tracker tracker = null;
-        Socket clientSocket = null;
-        DataInputStream input;
-        DataOutputStream output;
-
-        //Connect with the tracker
-        try
-        {
-            clientSocket = new Socket(trackerIP, trackerPort);
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
-        }
-
-        //Keep connection open while in torrents. Used to update the torrent with tracker info
-        torrents.add(new Torrent(peerID, new Connection(clientSocket, new HelloTracker(peerID), -7, connections.size())));
-    }*/
 
     public List<Connection> GetConnections()
     {
         return connections;
     }
 
-/*    //*********************************************Used to test for now, might become real method
-    public void SendMessage(String hostName, int port, IMessage message, int peerID)
+    public void SetupPeer()
     {
-        Socket clientSocket;
-
+        File cfg = new File("Common.cfg");
+        Scanner cfgReader = null;
+        //Store data from file
         try
         {
-            clientSocket = new Socket(hostName, port);
-            connections.add(new Connection(clientSocket, message, peerID, connections.size()));
-            connections.get(connections.size() - 1).start();
+            cfgReader = new Scanner(cfg);
         }
-        catch(IOException e)
+        catch (FileNotFoundException e)
         {
             e.printStackTrace();
         }
-    }*/
+
+        StringTokenizer tokenizer = null;
+
+        //While there's data to read, load common data
+        while(cfgReader != null && cfgReader.hasNextLine())
+        {
+            tokenizer = new StringTokenizer(cfgReader.nextLine());
+            String temp = tokenizer.nextToken();
+            if(temp.compareTo("NumberOfPreferredNeighbors") == 0)
+            {
+                numOfPrefNeighbors = Integer.parseInt(tokenizer.nextToken());
+            }
+            else if(temp.compareTo("UnchokingInterval") == 0)
+            {
+                unchokingInterval = Integer.parseInt(tokenizer.nextToken());
+            }
+            else if(temp.compareTo("OptimisticUnchokingInterval") == 0)
+            {
+                optimisticInterval = Integer.parseInt(tokenizer.nextToken());
+            }
+            else if(temp.compareTo("FileName") == 0)
+            {
+                fileName = tokenizer.nextToken();
+            }
+            else if(temp.compareTo("FileSize") == 0)
+            {
+                fileSize = Integer.parseInt(tokenizer.nextToken());
+            }
+            else
+            {
+                pieceSize = Integer.parseInt(tokenizer.nextToken());
+            }
+
+        }
+    }
 
     //Connect the peers to all the peers before it in the PeerInfo.cfg file
     public void ConnectPeers()
     {
-        File cfg = new File("/PeerInfo.cfg");
+        File cfg = new File("PeerInfo.cfg");
         Scanner cfgReader = null;
         //Store data from file
         try
@@ -194,10 +204,29 @@ class Peer extends Thread
                         fileBits.put(peerID, new BitSet(pieceCount));
                         fileBits.get(peerID).set(index, true);
                     }
+                    ///***********************************************************************need to figure out what to do if request is never responded to
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            myRequestedBits.set(index, true);
+                            while(myRequestedBits.get(index) == true)
+                            {
+                                fromConnection.AddMessage(new IntMessage(Message.REQUEST, index));
+                                try
+                                {
+                                    Thread.sleep(1000);
+                                } catch(InterruptedException e)
+                                {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }).start();
                     //Send request for the index'th piece
-                    fromConnection.AddMessage(new IntMessage(Message.REQUEST, index));
+                    //fromConnection.AddMessage(new IntMessage(Message.REQUEST, index));
                     //Update myRequestedBits so that we know it's requesting that piece
-                    myRequestedBits.set(index, true);
+
                     break;
                 case Message.BITFIELD       :
                     BitFieldMessage msg = ((BitFieldMessage)m);
@@ -216,6 +245,7 @@ class Peer extends Thread
                 case Message.REQUEST        :
                     if(!isChoked.get(peerID))
                     {
+
                         //***********************************************************************************************SEND PIECE
                     }
                     break;
@@ -227,6 +257,32 @@ class Peer extends Thread
                     break;
             }
         }
+    }
+
+    public void SplitFile(File file)
+    {
+        try
+        {
+            FileReader reader = new FileReader(file);
+            int charChecker = -1;
+            int byteCount = 0;
+            int pieceCount = 0;
+            while((charChecker = reader.read()) != -1)
+            {
+                FileWriter writer = new FileWriter("peer_" + String.valueOf(peerID) + "/" + String.valueOf(byteCount++) + ".file");
+                while(charChecker != -1 && byteCount++ < pieceSize)
+                {
+                    char currChar = (char)charChecker;
+                    writer.write(currChar);
+                    charChecker = reader.read();
+                }
+
+            }
+        } catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+
     }
 
     public void run()

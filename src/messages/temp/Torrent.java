@@ -1,13 +1,18 @@
-import messages.PeerInfo;
+/*
+package messages.temp;
+
+import messages.temp.PeerInfo;
 import messages.temp.TrackerInfo;
 
 import java.util.*;
 
+*/
 /***********************************************************************************************************************
- * Torrent object used by peers to separate different files and determine who is participating in a particular torrent.
+ * messages.temp.Torrent object used by peers to separate different files and determine who is participating in a particular torrent.
  *
  * ***Using cfg files for the tracker info for project, can change later to generalize tracker.
- **********************************************************************************************************************/
+ **********************************************************************************************************************//*
+
 
 public class Torrent
 {
@@ -25,4 +30,4 @@ public class Torrent
         fileBits.put(peerID, new BitSet(trackerInfo.filePiecesCount));
         this.trackerConnection = trackerConnection;
     }
-}
+}*/

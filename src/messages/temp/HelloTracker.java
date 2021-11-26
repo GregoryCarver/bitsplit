@@ -1,7 +1,9 @@
-package messages;
+package messages.temp;
+
+import messages.IMessage;
 
 /***********************************************************************************************************************
- * Used for sending the initial HelloTracker to the Tracker. It sends the sending peer's peerID.
+ * Used for sending the initial HelloTracker to the messages.temp.Tracker. It sends the sending peer's peerID.
  **********************************************************************************************************************/
 
 public class HelloTracker implements IMessage

@@ -32,7 +32,7 @@ public class Logger
                     break;
                 case 2:   
                     LocalTime time1 = LocalTime.now();
-                    fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " is interested in " + peerID);
+                    fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " received the 'interested' message from " + peerID);
                     fw.close();
                     System.out.println("Successfully wrote to " + logFile + ".");
                     break;

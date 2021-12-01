@@ -2,19 +2,26 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class Logger
 {
     public static void log(int peerID, int expectedPeerID, String message, int type)
     {
         try {
-            FileWriter fw = new FileWriter("log_peer_" + String.valueOf(peerID) + ".log", true);
+            String logFile = "log_peer_" + String.valueOf(peerID) + ".log";
+            FileWriter fw = new FileWriter(logFile, true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw);
             out.println("Peer " + String.valueOf(peerID) + ": " + message);
             out.close();
             switch (type) {
-                case 0: 
+                case 0:
+                LocalTime time1 = LocalTime.now();
+                fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " is unchoked by " + peerID);
+                fw.close();
+                System.out.println("Successfully wrote to " + logfile + ".");
                     break;
                 case 1:   
                     break;

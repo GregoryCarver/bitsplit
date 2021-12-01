@@ -35,6 +35,18 @@ class Peer extends Thread
     {
         this.peerID = peerID;
         SetupPeer();
+        try {
+            String logFile = "log_peer_" + String.valueOf(peerID) + ".log";
+            File log = new File(logFile);
+            if (log.createNewFile()) {
+              System.out.println("File created: " + log.getName());
+            } else {
+              System.out.println("File already exists.");
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
         connections = new ArrayList<>();
         myFileBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
         myRequestedBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));

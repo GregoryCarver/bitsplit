@@ -17,42 +17,65 @@ public class Logger
             PrintWriter out = new PrintWriter(bw);
             out.println("Peer " + String.valueOf(peerID) + ": " + message);
             out.close();
+            LocalTime time1 = LocalTime.now();
             switch (type) {
                 case 0:
-                LocalTime time1 = LocalTime.now();
-                fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " is unchoked by " + peerID);
-                fw.close();
-                System.out.println("Successfully wrote to " + logFile + ".");
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " is unchoked by " + expectedPeerID + ".");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 1:   
-                    LocalTime time1 = LocalTime.now();
-                    fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " is choked by " + peerID);
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " is choked by " + expectedPeerID + ".");
                     fw.close();
                     System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 2:   
-                    LocalTime time1 = LocalTime.now();
-                    fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " received the 'interested' message from " + peerID);
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'interested' message from " + expectedPeerID + ".");
                     fw.close();
                     System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 3:
-                    LocalTime time1 = LocalTime.now();
-                    fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " is not interested in " + peerID);
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'not interested' message from " + expectedPeerID + ".");
                     fw.close();
                     System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 4:
-                    LocalTime time1 = LocalTime.now();
-                    fw.write(time1.format(formatter) + ": Peer " + expectedPeerID + " has " + peerID);
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'have' message from " + expectedPeerID + ".");
                     fw.close();
                     System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 5:
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " makes a connection to Peer " + expectedPeerID + ".");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 6:
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " is connected from Peer " + expectedPeerID + ".");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
                     break;
                 case 7:
+                    //needs to have the prefered neighbor list passed in and iterated through
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " has the preferred neighbors " + expectedPeerID + ".");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
+                    break;
+                case 8:
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " has the optimistically unchoked neighbor " + expectedPeerID + ".");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
+                    break;
+                case 9:
+                    //needs to be given the total number of pieces that the peer has and the piece index
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " has downloaded the piece " + 1 + " from  " + expectedPeerID
+                    + ". Now the number of pieces it has is " + 1 + ".");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
+                    break;
+                case 10:
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " has downloaded the complete file.");
+                    fw.close();
+                    System.out.println("Successfully wrote to " + logFile + ".");
                     break;
 
             }

@@ -3,6 +3,10 @@ import messages.*;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.nio.file.Files;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /***********************************************************************************************************************
  * Peer type that can connect to other peers or trackers. After connecting to a tracker, it can then exchange pieces of
@@ -29,15 +33,17 @@ class Peer extends Thread
     int fileSize;
     String fileName;
     int pieceSize;
+    int pieceCount;
     volatile boolean isPeerListening;
 
     public  Peer(int peerID)
     {
         this.peerID = peerID;
+        this.pieceCount = (fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1);
         SetupPeer();
         connections = new ArrayList<>();
-        myFileBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
-        myRequestedBits = new BitSet((fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1));
+        myFileBits = new BitSet(pieceCount);
+        myRequestedBits = new BitSet(pieceCount);
         isChoked = new HashMap<>();
         isInterested = new HashMap<>();
         //Start listening for peers
@@ -50,9 +56,13 @@ class Peer extends Thread
         File fileDir = new File("peer_" + String.valueOf(peerID));
         if(fileDir.list().length != 0)
         {
-            myFileBits.set(0, myFileBits.size());
+            myFileBits.set(1, pieceCount - 1);
             File theFile = new File(fileDir + "/" + fileName);
             SplitFile(theFile);
+        }
+        else
+        {
+            myFileBits.set(0, pieceCount - 1);
         }
     }
 
@@ -136,6 +146,7 @@ class Peer extends Thread
             {
                 this.hostName = tokenizer.nextToken();
                 this.serverPort = Integer.parseInt(tokenizer.nextToken());
+
                 if(Integer.parseInt(tokenizer.nextToken()) == 1)
                 {
                     this.hasFile = true;
@@ -156,6 +167,7 @@ class Peer extends Thread
                 {
                     e.printStackTrace();
                 }
+
                 connections.add(new Connection(clientSocket, new HandShake(Integer.parseInt(tempPeerID)), Integer.parseInt(tempPeerID), connections.size()));
             }
         }
@@ -167,7 +179,7 @@ class Peer extends Thread
         //Check if handshake and the right peerID ////////////////////////////////////make sure this is right peerID(which peer)
         if(message instanceof HandShake && ((HandShake)message).peerID == peerID)
         {
-            for(int i = 0; i < myFileBits.size(); i++)
+            for(int i = 0; i < pieceCount; i++)
             {
                 if(myFileBits.get(i) == true)
                 {
@@ -200,11 +212,10 @@ class Peer extends Thread
                     }
                     else
                     {
-                        int pieceCount = (fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1);
                         fileBits.put(peerID, new BitSet(pieceCount));
                         fileBits.get(peerID).set(index, true);
                     }
-                    ///***********************************************************************need to figure out what to do if request is never responded to
+                    ///***************************************************test********************need to figure out what to do if request is never responded to
                     new Thread(new Runnable() {
                         @Override
                         public void run()
@@ -226,7 +237,7 @@ class Peer extends Thread
                     //Send request for the index'th piece
                     //fromConnection.AddMessage(new IntMessage(Message.REQUEST, index));
                     //Update myRequestedBits so that we know it's requesting that piece
-
+                    ///*******************************************test***************************************************
                     break;
                 case Message.BITFIELD       :
                     BitFieldMessage msg = ((BitFieldMessage)m);
@@ -243,10 +254,13 @@ class Peer extends Thread
                     fromConnection.AddMessage(new Message());
                     break;
                 case Message.REQUEST        :
+                    IntMessage rmsg = ((IntMessage)m);
                     if(!isChoked.get(peerID))
                     {
+                        //******************************tring()*****************************************************************SEND PIECE
+                        String pieceContent = Files.readAllBytes("d");
+                        PieceMessage pmsg = new PieceMessage(Message.PIECE, rmsg.index, )
 
-                        //***********************************************************************************************SEND PIECE
                     }
                     break;
                 default                     :
@@ -269,20 +283,42 @@ class Peer extends Thread
             int pieceCount = 0;
             while((charChecker = reader.read()) != -1)
             {
-                FileWriter writer = new FileWriter("peer_" + String.valueOf(peerID) + "/" + String.valueOf(byteCount++) + ".file");
+                FileWriter writer = new FileWriter("peer_" + String.valueOf(peerID) + "/" + String.valueOf(pieceCount++));
+                BufferedWriter buffer = new BufferedWriter(writer);
                 while(charChecker != -1 && byteCount++ < pieceSize)
                 {
                     char currChar = (char)charChecker;
-                    writer.write(currChar);
+                    buffer.write(currChar);
                     charChecker = reader.read();
                 }
-
+                byteCount = 0;
+                buffer.flush();
+                buffer.close();
             }
+
+            reader.close();
         } catch(IOException e)
         {
             e.printStackTrace();
         }
 
+    }
+
+    public GetFileAsString()
+    {
+
+    }
+
+    public boolean GotAllPieces()
+    {
+        for(int i = 0; i < pieceCount; i++)
+        {
+            if(myFileBits.get(i) == false)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void run()

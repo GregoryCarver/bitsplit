@@ -103,7 +103,7 @@ public class Logger
     ******************used to log a piece of a file downloaded************************
     */
 
-    public static void log(int peerID, String message, int pieceIndex, int pieceCount)
+    public static void log(int peerID, int expectedPeerID, String message, int pieceIndex, int pieceCount)
     {
         try
         {

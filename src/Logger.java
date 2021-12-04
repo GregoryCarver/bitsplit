@@ -2,6 +2,12 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -24,48 +30,61 @@ public class Logger
             out.println("Peer " + String.valueOf(peerID) + ": " + message);
             out.close();
             LocalTime time1 = LocalTime.now();
-            switch (type) {
-                case 0:
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " is unchoked by " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 1:   
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " is choked by " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 2:   
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'interested' message from " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 3:
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'not interested' message from " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 4:
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'have' message from " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 5:
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " makes a connection to Peer " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 6:
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " is connected from Peer " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
-                case 7:
-                    fw.write(time1.format(formatter) + ": Peer " + peerID + " has the optimistically unchoked neighbor " + expectedPeerID + ".");
-                    fw.close();
-                    System.out.println("Successfully wrote to " + logFile + ".");
-                    break;
+            Path lf = Paths.get(logFile);
+            FileChannel channel = FileChannel.open(lf, StandardOpenOption.APPEND);
+            FileLock lock = null;
+            try
+            {
+                lock=channel.lock();
+                switch (type) {
+                    case 0:
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " is unchoked by " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 1:   
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " is choked by " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 2:   
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'interested' message from " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 3:
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'not interested' message from " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 4:
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " received the 'have' message from " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 5:
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " makes a connection to Peer " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 6:
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " is connected from Peer " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                    case 7:
+                        fw.write(time1.format(formatter) + ": Peer " + peerID + " has the optimistically unchoked neighbor " + expectedPeerID + ".");
+                        fw.close();
+                        System.out.println("Successfully wrote to " + logFile + ".");
+                        break;
+                }
             }
+            catch(final OverlappingFileLockException e)
+            {
+                channel.close();
+            }
+            lock.release();
+            channel.close();
         } 
         catch (IOException e) 
         {
@@ -89,10 +108,23 @@ public class Logger
             out.println("Peer " + String.valueOf(peerID) + ": " + message);
             out.close();
             LocalTime time1 = LocalTime.now();
-            fw.write(time1.format(formatter) + ": Peer " + peerID + " has downloaded the complete file.");
-            fw.close();
-            System.out.println("Successfully wrote to " + logFile + ".");
-        } 
+            Path lf = Paths.get(logFile);
+            FileChannel channel = FileChannel.open(lf, StandardOpenOption.APPEND);
+            FileLock lock = null;
+            try
+            {
+                lock=channel.lock();
+                fw.write(time1.format(formatter) + ": Peer " + peerID + " has downloaded the complete file.");
+                fw.close();
+                System.out.println("Successfully wrote to " + logFile + ".");
+            }
+            catch(final OverlappingFileLockException e)
+            {
+                channel.close();
+            }
+            lock.release();
+            channel.close();
+    }  
         catch(IOException e)
         {
             System.out.println("Failed to log message!");
@@ -115,11 +147,24 @@ public class Logger
             out.println("Peer " + String.valueOf(peerID) + ": " + message);
             out.close();
             LocalTime time1 = LocalTime.now();
-            //needs to be given the total number of pieces that the peer has and the piece index
-            fw.write(time1.format(formatter) + ": Peer " + peerID + " has downloaded the piece " + 1 + " from  " + expectedPeerID
-            + ". Now the number of pieces it has is " + 1 + ".");
-            fw.close();
-            System.out.println("Successfully wrote to " + logFile + ".");
+            Path lf = Paths.get(logFile);
+            FileChannel channel = FileChannel.open(lf, StandardOpenOption.APPEND);
+            FileLock lock = null;
+            try
+            {
+                lock=channel.lock();
+                //needs to be given the total number of pieces that the peer has and the piece index
+                fw.write(time1.format(formatter) + ": Peer " + peerID + " has downloaded the piece " + 1 + " from  " + expectedPeerID
+                + ". Now the number of pieces it has is " + 1 + ".");
+                fw.close();
+                System.out.println("Successfully wrote to " + logFile + ".");
+            }
+            catch(final OverlappingFileLockException e)
+            {
+                channel.close();
+            }
+            lock.release();
+            channel.close();
         }
         catch(IOException e)
         {
@@ -143,13 +188,26 @@ public class Logger
             out.println("Peer " + String.valueOf(peerID) + ": " + message);
             out.close();
             LocalTime time1 = LocalTime.now();
-            //needs to have the prefered neighbor list passed in and iterated through
-            for(int i=0; i<preferredNeighbors.length; i++)
+            Path lf = Paths.get(logFile);
+            FileChannel channel = FileChannel.open(lf, StandardOpenOption.APPEND);
+            FileLock lock = null;
+            try
             {
-                fw.write(time1.format(formatter) + ": Peer " + peerID + " has the preferred neighbors " + preferredNeighbors[i] + ".");
+                lock=channel.lock();
+                //needs to have the prefered neighbor list passed in and iterated through
+                for(int i=0; i<preferredNeighbors.length; i++)
+                {
+                    fw.write(time1.format(formatter) + ": Peer " + peerID + " has the preferred neighbors " + preferredNeighbors[i] + ".");
+                }
+                fw.close();
+                System.out.println("Successfully wrote to " + logFile + ".");
             }
-            fw.close();
-            System.out.println("Successfully wrote to " + logFile + ".");
+            catch(final OverlappingFileLockException e)
+            {
+                channel.close();
+            }
+            lock.release();
+            channel.close();
         }
         catch(IOException e)
         {

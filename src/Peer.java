@@ -39,8 +39,8 @@ class Peer extends Thread
     public  Peer(int peerID)
     {
         this.peerID = peerID;
-        this.pieceCount = (fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1);
         SetupPeer();
+        this.pieceCount = (fileSize / pieceSize) + ((fileSize % pieceSize) == 0 ? 0 : 1);
         connections = new ArrayList<>();
         myFileBits = new BitSet(pieceCount);
         myRequestedBits = new BitSet(pieceCount);
@@ -169,6 +169,7 @@ class Peer extends Thread
                 }
 
                 connections.add(new Connection(clientSocket, new HandShake(Integer.parseInt(tempPeerID)), Integer.parseInt(tempPeerID), connections.size()));
+                connections.get(connections.size() - 1).start();
             }
         }
     }
@@ -215,7 +216,7 @@ class Peer extends Thread
                         fileBits.put(peerID, new BitSet(pieceCount));
                         fileBits.get(peerID).set(index, true);
                     }
-                    ///***************************************************test********************need to figure out what to do if request is never responded to
+                    ///***************************************************test********************need to figure out if this thread will work for requests
                     new Thread(new Runnable() {
                         @Override
                         public void run()
@@ -255,19 +256,59 @@ class Peer extends Thread
                     break;
                 case Message.REQUEST        :
                     IntMessage rmsg = ((IntMessage)m);
-                    if(!isChoked.get(peerID))
+                    if(!isChoked.get(peerID) && myFileBits.get(rmsg.index))
                     {
-                        //******************************tring()*****************************************************************SEND PIECE
-                        String pieceContent = Files.readAllBytes("d");
-                        PieceMessage pmsg = new PieceMessage(Message.PIECE, rmsg.index, )
-
+                        byte[] pieceContent = new byte[0];
+                        try
+                        {
+                            pieceContent = Files.readAllBytes(Paths.get(String.valueOf(this.peerID) + String.valueOf(rmsg.index)));
+                        } catch(IOException e)
+                        {
+                            e.printStackTrace();
+                        }
+                        PieceMessage pmsg = new PieceMessage(Message.PIECE, rmsg.index, pieceContent);
+                        fromConnection.AddMessage(pmsg);
                     }
                     break;
                 default                     :
-                    //(might check if need piece still, just in case) download piece
-                    //if (unchoked, they have the piece you want, and you still need pieces) send another request
-                    //update requested bitset
-                    //
+                    //check if need piece still, just in case, download piece
+                    PieceMessage pmsg = ((PieceMessage)m);
+                    myRequestedBits.clear(pmsg.index);
+                    if(!myFileBits.get(pmsg.index))
+                    {
+                        myFileBits.set(pmsg.index);
+                        File output = new File("peer_" + String.valueOf(this.peerID) + "/" + String.valueOf(pmsg.index));
+                        try
+                        {
+                            Files.write(output.toPath(), pmsg.file);
+                        } catch(IOException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                    //if (they have the piece you want, and you still need pieces) send another request
+                    int nextClearIndex = myFileBits.nextClearBit(0);
+                    if(nextClearIndex != -1 && fileBits.get(peerID).get(nextClearIndex))
+                    {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                myRequestedBits.set(nextClearIndex, true);
+                                while(myRequestedBits.get(nextClearIndex))
+                                {
+                                    fromConnection.AddMessage(new IntMessage(Message.REQUEST, nextClearIndex));
+                                    try
+                                    {
+                                        Thread.sleep(1000);
+                                    } catch(InterruptedException e)
+                                    {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }).start();
+                    }
                     break;
             }
         }
@@ -304,11 +345,6 @@ class Peer extends Thread
 
     }
 
-    public GetFileAsString()
-    {
-
-    }
-
     public boolean GotAllPieces()
     {
         for(int i = 0; i < pieceCount; i++)
@@ -335,7 +371,7 @@ class Peer extends Thread
             }
             for(int i = 0; i < server.connections.size(); i++)
             {
-                Connection currConnection = connections.get(i);
+                Connection currConnection = server.connections.get(i);
                 if(currConnection.GetInMessages().size() > 0)
                 {
                     HandleMessage(currConnection.GetInMessages().remove(), currConnection.GetPeerID(), currConnection.GetPeerPos());
